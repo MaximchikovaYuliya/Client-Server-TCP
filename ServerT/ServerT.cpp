@@ -26,12 +26,19 @@ string  SetErrorMsgText(string msgText, int code)
 
 int main()
 {
+	WSAData ws;
+	SOCKET sS;
 	try
 	{
-		WSAStartup()
-		SOCKET sS;
+		if (FAILED(WSAStartup(MAKEWORD(2, 2), &ws)))
+			throw SetErrorMsgText("wsastartup:", WSAGetLastError());
 		if ((sS = socket(AF_INET, SOCK_STREAM, NULL)) == INVALID_SOCKET)
 			throw  SetErrorMsgText("socket:", WSAGetLastError());
+		if (closesocket(sS) == SOCKET_ERROR)
+			throw  SetErrorMsgText("closesocket:", WSAGetLastError());
+		if (WSACleanup() == SOCKET_ERROR)
+			throw  SetErrorMsgText("Cleanup:", WSAGetLastError());
+
 	}
 	catch (string errorMsgText)
 	{
