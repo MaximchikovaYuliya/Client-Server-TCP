@@ -1,4 +1,5 @@
 ﻿#include <iostream>
+#include <ctime>
 #include "Winsock2.h"
 
 #pragma warning(disable : 4996)
@@ -6,10 +7,10 @@
 
 using namespace std;
 
-string GetErrorMsgText(int code)									// cформировать текст ошибки 
+string GetErrorMsgText(int code)
 {
 	string msgText;
-	switch (code)													// проверка кода возврата 
+	switch (code) 
 	{
 	case WSAEACCES: msgText = "WSAEACCES"; break;
 	case WSAEFAULT: msgText = "WSAEFAULT"; break;
@@ -60,12 +61,12 @@ string GetErrorMsgText(int code)									// cформировать текст �
 	case WSA_NOT_ENOUGH_MEMORY: msgText = "WSA_NOT_ENOUGH_MEMORY"; break;
 	case WSA_OPERATION_ABORTED: msgText = "WSA_OPERATION_ABORTED"; break;
 	case WSASYSCALLFAILURE: msgText = "WSASYSCALLFAILURE"; break;
-	default:                msgText = "***ERROR***";      break;
+	default: msgText = "***ERROR***"; break;
 	};
 	return msgText;
 };
 
-string  SetErrorMsgText(string msgText, int code)
+string SetErrorMsgText(string msgText, int code)
 {
 	return  msgText + GetErrorMsgText(code);
 };
@@ -75,15 +76,17 @@ int main()
 {
 	WSAData ws;
 	SOCKET cC;
-	int k, ii = 1, z = 0;
-	char str3[10];
-	cout << "K=";
+	string ibuf = "Hello from Client ";
+	clock_t t_start = 0, t_end = 0;
+
+	int k;
+	cout << "k = ";
 	cin >> k;
-	k++;
-	char ibuf[50] = "Hello from Client 1";
-	char ibuf2[50] = "Hello from Client ";
+
 	try
 	{
+		t_start = clock();
+
 		if (FAILED(WSAStartup(MAKEWORD(2, 0), &ws)))
 			throw SetErrorMsgText("STARTUP: ", WSAGetLastError());
 
@@ -91,47 +94,30 @@ int main()
 			throw  SetErrorMsgText("SOCKET: ", WSAGetLastError());
 		cout << "Socket created." << endl;
 
-		SOCKADDR_IN serv;                     // параметры  сокета sS
-		serv.sin_family = AF_INET;           // используется IP-адресация  
-		serv.sin_port = htons(2000);          // порт 2000
+		SOCKADDR_IN serv;															// параметры  сокета sS
+		serv.sin_family = AF_INET;													// используется IP-адресация  
+		serv.sin_port = htons(2000);												// порт 2000
 		serv.sin_addr.s_addr = inet_addr("127.0.0.1");
 
 		if (connect(cC, (LPSOCKADDR)& serv, sizeof(serv)) == SOCKET_ERROR)
 			throw  SetErrorMsgText("CONNECT: ", WSAGetLastError());
 
 
-		int  libuf = 0;             //количество отправленных байь 
-		while (ii < k)
+		int  libuf = 0;
+		char buf[5] = "";
+		int i = 1;
+
+		while (i <= k)
 		{
-			if ((libuf = send(cC, ibuf, strlen(ibuf) + 1, NULL)) == SOCKET_ERROR)
-				throw  SetErrorMsgText("send:", WSAGetLastError());
+			string ibuf_concat = ibuf + itoa(i, buf, 10);
+			if ((libuf = send(cC, ibuf_concat.c_str(), ibuf_concat.length() + 1, NULL)) == SOCKET_ERROR)
+				throw  SetErrorMsgText("SEND: ", WSAGetLastError());
 
+			if ((libuf = recv(cC, (char*)ibuf_concat.c_str(), sizeof(ibuf_concat), NULL)) == SOCKET_ERROR)
+				throw  SetErrorMsgText("RECV: ", WSAGetLastError());
 
-			if ((libuf = recv(cC, ibuf, sizeof(ibuf), NULL)) == SOCKET_ERROR)
-				throw  SetErrorMsgText("recv:", WSAGetLastError());
-			cout << "SMS:" << ibuf << endl;
-
-			for (int i = size(ibuf); i > 0; i--)
-			{
-				if (ibuf[i] == ' ')
-				{
-					str3[0] = ibuf[i + 1];
-					z = atoi(str3);
-					break;
-				}
-			}
-
-			z++;
-			sprintf(str3, "%d", z);
-
-
-			for (int i = 0; i < size(ibuf2); i++)
-				ibuf[i] = ibuf2[i];
-
-
-			strcat(ibuf, str3);
-
-			ii++;
+			cout << "MESSAGE: " << ibuf_concat << endl;
+			i++;
 		}
 
 		if (closesocket(cC) == SOCKET_ERROR)
@@ -139,11 +125,15 @@ int main()
 
 		if (WSACleanup() == SOCKET_ERROR)
 			throw  SetErrorMsgText("CLENUP: ", WSAGetLastError());
+
+		t_end = clock();
+		cout << endl << "Accomplished in " << t_end - t_start / (double)CLOCKS_PER_SEC << " sec." << endl;
 	}
 	catch (string errorMsgText)
 	{
-		cout << endl << "WSAGetLastError: " << errorMsgText;
+		cout << endl << errorMsgText;
 	}
+	cout << endl;
 	return 0;
 }
 

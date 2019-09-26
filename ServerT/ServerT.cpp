@@ -6,10 +6,10 @@
 
 using namespace std;
 
-string GetErrorMsgText(int code)									// cформировать текст ошибки 
+string GetErrorMsgText(int code)
 {
 	string msgText;
-	switch (code)													// проверка кода возврата 
+	switch (code)
 	{
 	case WSAEACCES: msgText = "WSAEACCES"; break;
 	case WSAEFAULT: msgText = "WSAEFAULT"; break;
@@ -60,7 +60,7 @@ string GetErrorMsgText(int code)									// cформировать текст �
 	case WSA_NOT_ENOUGH_MEMORY: msgText = "WSA_NOT_ENOUGH_MEMORY"; break;
 	case WSA_OPERATION_ABORTED: msgText = "WSA_OPERATION_ABORTED"; break;
 	case WSASYSCALLFAILURE: msgText = "WSASYSCALLFAILURE"; break;
-	default:                msgText = "***ERROR***";      break;
+	default: msgText = "***ERROR***"; break;
 	};
 	return msgText;
 };
@@ -84,9 +84,9 @@ int main()
 			throw  SetErrorMsgText("SOCKET: ", WSAGetLastError());
 		cout << "Socket created." << endl;
 
-		SOCKADDR_IN serv;                     // параметры  сокета sS
-		serv.sin_family = AF_INET;           // используется IP-адресация  
-		serv.sin_port = htons(2000);          // порт 2000
+		SOCKADDR_IN serv;														// параметры  сокета sS
+		serv.sin_family = AF_INET;												// используется IP-адресация  
+		serv.sin_port = htons(2000);											// порт 2000
 		serv.sin_addr.s_addr = INADDR_ANY;
 
 		if (bind(sS, (LPSOCKADDR)& serv, sizeof(serv)) == SOCKET_ERROR)
@@ -98,20 +98,21 @@ int main()
 			throw  SetErrorMsgText("LISTEN: ", WSAGetLastError());
 		cout << "Listening..." << endl;
 
-		SOCKET cS;	                 // сокет для обмена данными с клиентом 
-		SOCKADDR_IN clnt;             // параметры  сокета клиента
-		memset(&clnt, 0, sizeof(clnt)); // обнулить память
-		int lclnt = sizeof(clnt);    // размер SOCKADDR_IN
+		SOCKET cS;																// сокет для обмена данными с клиентом 
+		SOCKADDR_IN clnt;														// параметры  сокета клиента
+		memset(&clnt, 0, sizeof(clnt));											// обнулить память
+		int lclnt = sizeof(clnt);												// размер SOCKADDR_IN
 
 		if ((cS = accept(sS, (sockaddr*)& clnt, &lclnt)) == INVALID_SOCKET)
 			throw  SetErrorMsgText("ACCEPT: ", WSAGetLastError());
 		cout << "Connection acceped." << endl;
 
-		cout << inet_ntoa(clnt.sin_addr) << endl;
-		cout << ntohs(clnt.sin_port) << endl;
+		cout << endl << "****CLIENT****" << endl;
+		cout << "IP: " << inet_ntoa(clnt.sin_addr) << endl;
+		cout << "PORT: " << ntohs(clnt.sin_port) << endl << endl;
 
-		char ibuf[50];                     //буфер ввода 
-		int  libuf = 0;                    //количество принятых байт
+		char ibuf[50];															//буфер ввода 
+		int  libuf = 0;															//количество принятых байт
 
 		for (;;)
 		{
@@ -133,7 +134,8 @@ int main()
 	}
 	catch (string errorMsgText)
 	{
-		cout << endl << "WSAGetLastError: " << errorMsgText;
+		cout << endl << errorMsgText;
 	}
+	cout << endl;
 	return 0;
 }
