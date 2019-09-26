@@ -74,58 +74,67 @@ string  SetErrorMsgText(string msgText, int code)
 int main()
 {
 	WSAData ws;
-	SOCKET sS;
+	SOCKET cC;
+	int k, ii = 1, z = 0;
+	char str3[10];
+	cout << "K=";
+	cin >> k;
+	k++;
+	char ibuf[50] = "Hello from Client 1";
+	char ibuf2[50] = "Hello from Client ";
 	try
 	{
 		if (FAILED(WSAStartup(MAKEWORD(2, 0), &ws)))
 			throw SetErrorMsgText("STARTUP: ", WSAGetLastError());
 
-		if ((sS = socket(AF_INET, SOCK_STREAM, NULL)) == INVALID_SOCKET)
+		if ((cC = socket(AF_INET, SOCK_STREAM, NULL)) == INVALID_SOCKET)
 			throw  SetErrorMsgText("SOCKET: ", WSAGetLastError());
 		cout << "Socket created." << endl;
 
 		SOCKADDR_IN serv;                     // параметры  сокета sS
 		serv.sin_family = AF_INET;           // используется IP-адресация  
 		serv.sin_port = htons(2000);          // порт 2000
-		serv.sin_addr.s_addr = INADDR_ANY;
+		serv.sin_addr.s_addr = inet_addr("127.0.0.1");
 
-		if (bind(sS, (LPSOCKADDR)& serv, sizeof(serv)) == SOCKET_ERROR)
-			throw  SetErrorMsgText("BIND: ", WSAGetLastError());
+		if (connect(cC, (LPSOCKADDR)& serv, sizeof(serv)) == SOCKET_ERROR)
+			throw  SetErrorMsgText("CONNECT: ", WSAGetLastError());
 
 
-	listen:	
-		if (listen(sS, SOMAXCONN) == SOCKET_ERROR)
-			throw  SetErrorMsgText("LISTEN: ", WSAGetLastError());
-		cout << "Listening..." << endl;
-
-		SOCKET cS;	                 // сокет для обмена данными с клиентом 
-		SOCKADDR_IN clnt;             // параметры  сокета клиента
-		memset(&clnt, 0, sizeof(clnt)); // обнулить память
-		int lclnt = sizeof(clnt);    // размер SOCKADDR_IN
-
-		if ((cS = accept(sS, (sockaddr*)& clnt, &lclnt)) == INVALID_SOCKET)
-			throw  SetErrorMsgText("ACCEPT: ", WSAGetLastError());
-		cout << "Connection acceped." << endl;
-
-		cout << inet_ntoa(clnt.sin_addr) << endl;
-		cout << ntohs(clnt.sin_port) << endl;
-
-		char ibuf[50];                     //буфер ввода 
-		int  libuf = 0;                    //количество принятых байт
-
-		for (;;)
+		int  libuf = 0;             //количество отправленных байь 
+		while (ii < k)
 		{
-			if ((libuf = recv(cS, ibuf, sizeof(ibuf), NULL)) == SOCKET_ERROR)
-				throw  SetErrorMsgText("RECV:", WSAGetLastError());
-			if (libuf == 0)
-				goto listen;
-			cout << ibuf << endl;
+			if ((libuf = send(cC, ibuf, strlen(ibuf) + 1, NULL)) == SOCKET_ERROR)
+				throw  SetErrorMsgText("send:", WSAGetLastError());
 
-			if ((libuf = send(cS, ibuf, strlen(ibuf) + 1, NULL)) == SOCKET_ERROR)
-				throw  SetErrorMsgText("SEND:", WSAGetLastError());
+
+			if ((libuf = recv(cC, ibuf, sizeof(ibuf), NULL)) == SOCKET_ERROR)
+				throw  SetErrorMsgText("recv:", WSAGetLastError());
+			cout << "SMS:" << ibuf << endl;
+
+			for (int i = size(ibuf); i > 0; i--)
+			{
+				if (ibuf[i] == ' ')
+				{
+					str3[0] = ibuf[i + 1];
+					z = atoi(str3);
+					break;
+				}
+			}
+
+			z++;
+			sprintf(str3, "%d", z);
+
+
+			for (int i = 0; i < size(ibuf2); i++)
+				ibuf[i] = ibuf2[i];
+
+
+			strcat(ibuf, str3);
+
+			ii++;
 		}
 
-		if (closesocket(sS) == SOCKET_ERROR)
+		if (closesocket(cC) == SOCKET_ERROR)
 			throw  SetErrorMsgText("CLOSE_SOCKET: ", WSAGetLastError());
 
 		if (WSACleanup() == SOCKET_ERROR)
@@ -137,3 +146,4 @@ int main()
 	}
 	return 0;
 }
+
