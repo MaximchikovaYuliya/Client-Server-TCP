@@ -105,7 +105,7 @@ int main()
 
 		if ((cS = accept(sS, (sockaddr*)& clnt, &lclnt)) == INVALID_SOCKET)
 			throw  SetErrorMsgText("ACCEPT: ", WSAGetLastError());
-		cout << "Connection acceped." << endl;
+		cout << "Connection accepted." << endl;
 
 		cout << endl << "****CLIENT****" << endl;
 		cout << "IP: " << inet_ntoa(clnt.sin_addr) << endl;
