@@ -1,5 +1,4 @@
 ﻿#include <iostream>
-#include <ctime>
 #include "Winsock2.h"
 
 #pragma warning(disable : 4996)
@@ -77,7 +76,6 @@ int main()
 	WSAData ws;
 	SOCKET cC;
 	string ibuf = "Hello from Client ";
-	clock_t t_start = 0, t_end = 0;
 
 	int k;
 	cout << "k = ";
@@ -85,8 +83,6 @@ int main()
 
 	try
 	{
-		t_start = clock();
-
 		if (FAILED(WSAStartup(MAKEWORD(2, 0), &ws)))
 			throw SetErrorMsgText("STARTUP: ", WSAGetLastError());
 
@@ -116,7 +112,7 @@ int main()
 			if ((libuf = recv(cC, (char*)ibuf_concat.c_str(), sizeof(ibuf_concat), NULL)) == SOCKET_ERROR)
 				throw  SetErrorMsgText("RECV: ", WSAGetLastError());
 
-			cout << "MESSAGE: " << ibuf_concat << endl;
+			cout << "MESSAGE FROM SERVER: " << ibuf_concat << endl;
 			i++;
 		}
 
@@ -125,9 +121,6 @@ int main()
 
 		if (WSACleanup() == SOCKET_ERROR)
 			throw  SetErrorMsgText("CLENUP: ", WSAGetLastError());
-
-		t_end = clock();
-		cout << endl << "Accomplished in " << t_end - t_start / (double)CLOCKS_PER_SEC << " sec." << endl;
 	}
 	catch (string errorMsgText)
 	{

@@ -1,4 +1,5 @@
 ﻿#include <iostream>
+#include <ctime>
 #include "Winsock2.h"
 
 #pragma warning(disable : 4996)
@@ -75,6 +76,8 @@ int main()
 {
 	WSAData ws;
 	SOCKET sS;
+	clock_t t_start = 0, t_end = 0;
+
 	try
 	{
 		if (FAILED(WSAStartup(MAKEWORD(2, 0), &ws)))
@@ -105,7 +108,7 @@ int main()
 
 		if ((cS = accept(sS, (sockaddr*)& clnt, &lclnt)) == INVALID_SOCKET)
 			throw  SetErrorMsgText("ACCEPT: ", WSAGetLastError());
-		cout << "Connection accepted." << endl;
+		cout << "Connection accepted." << endl << endl;
 
 		cout << endl << "****CLIENT****" << endl;
 		cout << "IP: " << inet_ntoa(clnt.sin_addr) << endl;
@@ -113,18 +116,25 @@ int main()
 
 		char ibuf[50];															//буфер ввода 
 		int  libuf = 0;															//количество принятых байт
+		t_start = clock();
 
 		for (;;)
 		{
 			if ((libuf = recv(cS, ibuf, sizeof(ibuf), NULL)) == SOCKET_ERROR)
 				throw  SetErrorMsgText("RECV:", WSAGetLastError());
-			if (libuf == 0)
+			if (libuf == 0) {
+				t_end = clock();
+				cout << endl << "Accomplished in " << (double)(t_end - t_start) / (double)CLOCKS_PER_SEC << " sec." << endl;
 				goto listen;
+			}
 			cout << ibuf << endl;
 
 			if ((libuf = send(cS, ibuf, strlen(ibuf) + 1, NULL)) == SOCKET_ERROR)
 				throw  SetErrorMsgText("SEND:", WSAGetLastError());
 		}
+
+		if (closesocket(cS) == SOCKET_ERROR)
+			throw  SetErrorMsgText("CLOSE_SOCKET: ", WSAGetLastError());
 
 		if (closesocket(sS) == SOCKET_ERROR)
 			throw  SetErrorMsgText("CLOSE_SOCKET: ", WSAGetLastError());
